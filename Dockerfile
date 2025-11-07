@@ -35,7 +35,7 @@ RUN chown -R ${NGINX_UID}:${NGINX_GID} /var/cache/nginx /var/run /var/log/nginx 
 # COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY index.html /usr/share/nginx/html/
+COPY index.html /usr/share/nginx/html/index.html
 
 
 EXPOSE 8080
