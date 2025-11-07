@@ -40,6 +40,11 @@ COPY index.html /usr/share/nginx/html/index.html
 
 EXPOSE 8080
 
+USER nginx
+
+# Comando para iniciar Nginx en primer plano (necesario para Docker)
+CMD ["nginx", "-g", "daemon off;"]
+
 # Ejecuta Nginx con el usuario predefinido 'nginx' que no es root.
 # La imagen nginx:alpine ya lo hace por defecto, pero especificarlo es claro.
 # Si tuvieras que crear un usuario nuevo, lo harías con ADDUSER antes de esta
