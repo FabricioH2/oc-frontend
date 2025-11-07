@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Comentarios</title>
+    <style>
+        /* Estilos Generales */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; background-color: #f4f7f6; }
+        h1, h2 { color: #333; }
+
+        /* Estilo de Tarjeta para Comentarios */
+        .comment {
+            border: none; /* Quitamos el borde tradicional */
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px; /* Bordes más suaves */
+            background-color: #ffffff; /* Fondo blanco */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra sutil para efecto de tarjeta */
+            transition: transform 0.2s;
+        }
+        .comment:hover {
+            transform: translateY(-2px); /* Pequeño efecto al pasar el ratón */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .comment strong {
+            color: #0056b3; /* Color distintivo para el autor */
+            display: block;
+            margin-bottom: 5px;
+            font-size: 1.1em;
+        }
+
+        /* Estilos del Formulario */
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; transition: background 0.3s; }
+        button:hover { background: #0056b3; }
+        input, textarea { 
+            width: 100%; 
+            padding: 10px; 
+            margin: 10px 0; 
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* Asegura que el padding no afecte el ancho total */
+        }
+        textarea { resize: vertical; height: 100px; }
+    </style>
+</head>
+<body>
+    <h1>💬 Sistema de Comentarios</h1>
+    <div id="comments"></div>
+
+    
+    <h2>Escribe tu Comentario</h2>
+    <input type="text" id="name" placeholder=" Nombre">
+    <textarea id="comment" placeholder="¡Escribe tu comentario aquí!"></textarea>
+    <button onclick="send()">Enviar Comentario</button>
+    
+    <script>
+        const API_URL = 'https://' + window.location.hostname.replace('frontend', 'backend-api');
+        
+        async function loadComments() {
+            try {
+                const res = await fetch(`${API_URL}/comments`);
+                if (!res.ok) throw new Error('Error al cargar los comentarios');
+                const data = await res.json();
+                
+                // Mapeo con el nuevo estilo de tarjeta
+                document.getElementById('comments').innerHTML = data.map(c => 
+                    `<div class="comment"><strong>${c.name}</strong>${c.comment}</div>`
+                ).join('');
+            } catch (error) {
+                console.error("No se pudieron cargar los comentarios:", error);
+                document.getElementById('comments').innerHTML = '<p style="color: red;">Error al conectar con la API de comentarios.</p>';
+            }
+        }
+        
+        async function send() {
+            const author = document.getElementById('name').value.trim();
+            const text = document.getElementById('comment').value.trim();
+            
+            if (!author || !text) {
+                alert('Por favor, completa ambos campos.');
+                return;
+            }
+
+            try {
+                await fetch(`${API_URL}/comments`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({name, comment})
+                });
+                document.getElementById('name').value = '';
+                document.getElementById('comment').value = '';
+                loadComments();
+            } catch (error) {
+                console.error("Error al enviar el comentario:", error);
+                alert('No se pudo enviar el comentario. Inténtalo de nuevo.');
+            }
+        }
+        
+        loadComments();
+    </script>
+</body>
+</html>
