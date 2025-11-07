@@ -19,7 +19,7 @@ ARG NGINX_GID=101 # Este es el GID por defecto del grupo 'nginx' en la imagen ng
 RUN chown -R ${NGINX_UID}:${NGINX_GID} /var/cache/nginx /var/run /var/log/nginx && \
     chmod -R g+rwx /var/cache/nginx /var/run /var/log/nginx
 
-    
+RUN mkdir -p /var/run/nginx && chown -R nginx:nginx /var/run/nginx /var/log/nginx /var/cache/nginx
 
 # Copia tu archivo de configuración de Nginx.
 # Si no tienes uno específico, la configuración predeterminada de Nginx Alpine
