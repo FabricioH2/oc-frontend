@@ -1,5 +1,5 @@
 namespace: ffisa-dev
-
+name: oc-frontend
 image: 
   repository: fabricioph2/oc-frontend
   tag: 6
