@@ -2,7 +2,7 @@ namespace: ffisa-dev
 name: oc-frontend
 image: 
   repository: fabricioph2/oc-frontend
-  tag: 6
+  tag: "{{ tag }}"
 replicas: 1
 resources:
    requests:

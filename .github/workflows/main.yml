@@ -19,7 +19,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKER_USERNAME }}/comments-frontend
+          images: ${{ secrets.DOCKER_USERNAME }}/oc-frontend
           tags: |
             type=raw,value=${{ github.run_number }}
 
@@ -104,6 +104,12 @@ jobs:
           
           echo "Última versión encontrada: $LATEST_VERSION"
           echo "version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update Image Tag
+        run: |
+          echo "Actualizando tag de imagen a ${{ github.run_number }}"
+          sed -i "s|{{ tag }}|${{ github.run_number }}|g" values.yaml
+          cat values.yaml
 
       - name: Deploy Frontend
         run: |

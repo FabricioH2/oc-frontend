@@ -9,6 +9,9 @@ function App() {
   const [error, setError] = useState(null);
   const [sending, setSending] = useState(false);
 
+  // Log inicial para verificar que el componente se está ejecutando
+  console.log('App component mounted. Hostname:', window.location.hostname);
+
   // Construir la URL de la API basada en el hostname
   const getApiUrl = () => {
     const hostname = window.location.hostname;
