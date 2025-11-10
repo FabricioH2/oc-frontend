@@ -55,7 +55,7 @@ function App() {
     }
 
     // Fallback: intentar con el mismo dominio pero cambiando el subdominio
-    const fallbackUrl = `https://oc-backend-api-ffisa-dev.${hostname.split('.').slice(1).join('.')}/api/comments`;
+    const fallbackUrl = `https://oc-backend-api-ffisa-dev.${hostname.split('.').slice(1).join('.')}/comments`;
     console.log('API URL (fallback):', fallbackUrl);
     return fallbackUrl;
   };
