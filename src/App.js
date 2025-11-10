@@ -38,7 +38,7 @@ function App() {
         // Reconstruir el hostname completo
         parts[0] = apiFirstPart;
         const apiHost = parts.join('.');
-        const apiUrl = `https://${apiHost}/api/comments`;
+        const apiUrl = `https://${apiHost}/comments`;
         console.log('API URL construida:', apiUrl);
         return apiUrl;
       }
@@ -53,9 +53,9 @@ function App() {
         return apiUrl;
       }
     }
-    
+
     // Fallback: intentar con el mismo dominio pero cambiando el subdominio
-    const fallbackUrl = `https://oc-backend-api-ffisa-dev.${hostname.split('.').slice(1).join('.')}/api/comments`;
+    const fallbackUrl = `https://oc-backend-api-ffisa-dev.${hostname.split('.').slice(1).join('.')}/comments`;
     console.log('API URL (fallback):', fallbackUrl);
     return fallbackUrl;
   };
