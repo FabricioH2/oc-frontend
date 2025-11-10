@@ -18,9 +18,23 @@ function App() {
       return 'http://localhost:3000/api/comments';
     }
     
-    // En OpenShift, reemplazar 'frontend' por 'backend-api'
-    const apiHost = hostname.replace('frontend', 'backend-api');
-    return `https://${apiHost}/api/comments`;
+    // En OpenShift, construir la URL del backend-api
+    // Opción 1: Si el hostname contiene 'frontend', reemplazarlo por 'backend-api'
+    if (hostname.includes('frontend')) {
+      const apiHost = hostname.replace('frontend', 'backend-api');
+      return `https://${apiHost}/api/comments`;
+    }
+    
+    // Opción 2: Si el hostname tiene un patrón específico, extraer el dominio base
+    // Ejemplo: frontend-ffisa-dev.apps.cluster.com -> backend-api-ffisa-dev.apps.cluster.com
+    const parts = hostname.split('.');
+    if (parts.length > 0 && parts[0].includes('frontend')) {
+      parts[0] = parts[0].replace('frontend', 'backend-api');
+      return `https://${parts.join('.')}/api/comments`;
+    }
+    
+    // Fallback: intentar con el mismo dominio pero cambiando el subdominio
+    return `https://backend-api.${hostname.split('.').slice(1).join('.')}/api/comments`;
   };
 
   // Cargar comentarios
