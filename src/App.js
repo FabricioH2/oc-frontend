@@ -18,7 +18,7 @@ function App() {
     
     // Si estamos en localhost, usar la API local
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return 'http://localhost:3000/api/comments';
+      return 'http://localhost:3000/comments';
     }
     
     // En OpenShift, construir la URL del backend-api
@@ -38,7 +38,7 @@ function App() {
         // Reconstruir el hostname completo
         parts[0] = apiFirstPart;
         const apiHost = parts.join('.');
-        const apiUrl = `https://${apiHost}/api/comments`;
+        const apiUrl = `https://${apiHost}/comments`;
         console.log('API URL construida:', apiUrl);
         return apiUrl;
       }
@@ -48,7 +48,7 @@ function App() {
         const apiFirstPart = firstPart.replace('oc-frontend', 'oc-backend-api');
         parts[0] = apiFirstPart;
         const apiHost = parts.join('.');
-        const apiUrl = `https://${apiHost}/api/comments`;
+        const apiUrl = `https://${apiHost}/comments`;
         console.log('API URL construida:', apiUrl);
         return apiUrl;
       }
