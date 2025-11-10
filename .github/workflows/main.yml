@@ -60,8 +60,64 @@ jobs:
         run: |
           echo "${HELM_REGISTRY_PASSWORD}" | helm registry login registry-1.docker.io -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
+      - name: Get Latest Chart Version
+        id: get-chart-version
+        run: |
+          echo "Obteniendo última versión disponible del chart desde Docker Hub..."
+          
+          # Autenticarse en Docker Hub API
+          TOKEN_RESPONSE=$(curl -s -H "Content-Type: application/json" \
+            -X POST \
+            -d "{\"username\":\"${{ secrets.DOCKER_USERNAME }}\",\"password\":\"${{ secrets.DOCKER_TOKEN }}\"}" \
+            https://hub.docker.com/v2/users/login/)
+          
+          TOKEN=$(echo $TOKEN_RESPONSE | jq -r '.token')
+          
+          if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
+            echo "Error: No se pudo obtener el token de Docker Hub"
+            echo "Response: $TOKEN_RESPONSE"
+            exit 1
+          fi
+          
+          # Obtener todas las versiones del chart (tags)
+          echo "Buscando tags del repositorio oc-charts..."
+          TAGS_RESPONSE=$(curl -s -H "Authorization: JWT $TOKEN" \
+            "https://hub.docker.com/v2/repositories/${{ secrets.DOCKER_USERNAME }}/oc-charts/tags?page_size=100")
+          
+          # Extraer solo tags que sean números (versiones)
+          VERSIONS=$(echo $TAGS_RESPONSE | jq -r '.results[]?.name' | grep -E '^[0-9]+$' || echo "")
+          
+          if [ -z "$VERSIONS" ]; then
+            echo "Error: No se encontraron versiones numéricas del chart"
+            echo "Tags disponibles:"
+            echo $TAGS_RESPONSE | jq -r '.results[]?.name' | head -10
+            exit 1
+          fi
+          
+          # Encontrar la versión más alta
+          LATEST_VERSION=$(echo "$VERSIONS" | sort -n | tail -1)
+          
+          if [ -z "$LATEST_VERSION" ]; then
+            echo "Error: No se pudo determinar la última versión"
+            exit 1
+          fi
+          
+          echo "Última versión encontrada: $LATEST_VERSION"
+          echo "version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+
       - name: Deploy Frontend
         run: |
-          helm upgrade --install oc-frontend oci://registry-1.docker.io/${{ secrets.DOCKER_USERNAME }}/oc-charts --version ${{ github.run_number }} --values values.yaml
+          CHART_VERSION="${{ steps.get-chart-version.outputs.version }}"
+          
+          if [ -z "$CHART_VERSION" ]; then
+            echo "Error: No se pudo obtener la versión del chart"
+            exit 1
+          fi
+          
+          echo "Desplegando chart versión: $CHART_VERSION"
+          helm upgrade --install oc-frontend \
+            oci://registry-1.docker.io/${{ secrets.DOCKER_USERNAME }}/oc-charts \
+            --version $CHART_VERSION \
+            --values values.yaml
 
       
