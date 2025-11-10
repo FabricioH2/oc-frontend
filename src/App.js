@@ -38,7 +38,7 @@ function App() {
         // Reconstruir el hostname completo
         parts[0] = apiFirstPart;
         const apiHost = parts.join('.');
-        const apiUrl = `https://${apiHost}/comments`;
+        const apiUrl = `https://${apiHost}/api/comments`;
         console.log('API URL construida:', apiUrl);
         return apiUrl;
       }
