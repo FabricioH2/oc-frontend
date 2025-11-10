@@ -19,22 +19,42 @@ function App() {
     }
     
     // En OpenShift, construir la URL del backend-api
-    // Opción 1: Si el hostname contiene 'frontend', reemplazarlo por 'backend-api'
-    if (hostname.includes('frontend')) {
-      const apiHost = hostname.replace('frontend', 'backend-api');
-      return `https://${apiHost}/api/comments`;
-    }
+    // El hostname típico es: oc-frontend-ffisa-dev.apps.cluster.com
+    // Necesitamos: oc-backend-api-ffisa-dev.apps.cluster.com
     
-    // Opción 2: Si el hostname tiene un patrón específico, extraer el dominio base
-    // Ejemplo: frontend-ffisa-dev.apps.cluster.com -> backend-api-ffisa-dev.apps.cluster.com
+    // Dividir el hostname en partes
     const parts = hostname.split('.');
-    if (parts.length > 0 && parts[0].includes('frontend')) {
-      parts[0] = parts[0].replace('frontend', 'backend-api');
-      return `https://${parts.join('.')}/api/comments`;
+    
+    if (parts.length > 0) {
+      // Obtener la primera parte (ej: "oc-frontend-ffisa-dev")
+      const firstPart = parts[0];
+      
+      // Reemplazar "frontend" por "backend-api" en la primera parte
+      if (firstPart.includes('frontend')) {
+        const apiFirstPart = firstPart.replace('frontend', 'backend-api');
+        // Reconstruir el hostname completo
+        parts[0] = apiFirstPart;
+        const apiHost = parts.join('.');
+        const apiUrl = `https://${apiHost}/api/comments`;
+        console.log('API URL construida:', apiUrl);
+        return apiUrl;
+      }
+      
+      // Si no contiene "frontend", intentar reemplazar "oc-frontend" por "oc-backend-api"
+      if (firstPart.startsWith('oc-frontend')) {
+        const apiFirstPart = firstPart.replace('oc-frontend', 'oc-backend-api');
+        parts[0] = apiFirstPart;
+        const apiHost = parts.join('.');
+        const apiUrl = `https://${apiHost}/api/comments`;
+        console.log('API URL construida:', apiUrl);
+        return apiUrl;
+      }
     }
     
     // Fallback: intentar con el mismo dominio pero cambiando el subdominio
-    return `https://backend-api.${hostname.split('.').slice(1).join('.')}/api/comments`;
+    const fallbackUrl = `https://oc-backend-api-ffisa-dev.${hostname.split('.').slice(1).join('.')}/api/comments`;
+    console.log('API URL (fallback):', fallbackUrl);
+    return fallbackUrl;
   };
 
   // Cargar comentarios
@@ -42,17 +62,31 @@ function App() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(getApiUrl());
+      const apiUrl = getApiUrl();
+      console.log('Intentando cargar comentarios desde:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      console.log('Respuesta recibida:', response.status, response.statusText);
       
       if (!response.ok) {
-        throw new Error('Error al cargar los comentarios');
+        const errorText = await response.text();
+        console.error('Error en respuesta:', errorText);
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
       
       const data = await response.json();
+      console.log('Comentarios cargados:', data);
       setComments(data);
     } catch (err) {
       console.error('Error al cargar comentarios:', err);
-      setError('Error al conectar con la API de comentarios.');
+      const apiUrl = getApiUrl();
+      setError(`Error al conectar con la API: ${err.message}. URL intentada: ${apiUrl}`);
     } finally {
       setLoading(false);
     }
@@ -70,7 +104,10 @@ function App() {
 
     try {
       setSending(true);
-      const response = await fetch(getApiUrl(), {
+      const apiUrl = getApiUrl();
+      console.log('Enviando comentario a:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -78,8 +115,12 @@ function App() {
         body: JSON.stringify({ name: author, comment: text }),
       });
 
+      console.log('Respuesta al enviar comentario:', response.status, response.statusText);
+
       if (!response.ok) {
-        throw new Error('Error al enviar el comentario');
+        const errorText = await response.text();
+        console.error('Error en respuesta:', errorText);
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
 
       // Limpiar formulario
@@ -90,7 +131,7 @@ function App() {
       await loadComments();
     } catch (err) {
       console.error('Error al enviar comentario:', err);
-      alert('No se pudo enviar el comentario. Inténtalo de nuevo.');
+      alert(`No se pudo enviar el comentario: ${err.message}. Revisa la consola para más detalles.`);
     } finally {
       setSending(false);
     }
